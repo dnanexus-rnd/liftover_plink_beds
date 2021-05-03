@@ -55,6 +55,6 @@ Alternatively, input parameters can also be specified via the webUI of [RAP](htt
 
 \* The estimates were generated in April 2021. All numbers can be subject to change. Compute rate could be changing by RAP's Terms of Service. Depending on the instnace type of choice, the implementation of the pipeline and more, there is always room for further optimizations on runtime or cost, or both. 
 
-#### Acknowledgements
+### Acknowledgements
 
 Thanks to Tony Marcketta ([@AMarcketta](https://twitter.com/amarcketta)), Joe Foster, Chiao-Feng Lin ([@chiaofenglin](https://twitter.com/chiaofenglin)), Peter Nguyen, Chai Fungtammasan ([@Chai_Arkarachai](https://twitter.com/Chai_Arkarachai)), and Jason Chin ([@infoecho](https://twitter.com/infoecho)) for the discussions on the liftover process. This is part of our data preparation process for our research project using the UK Biobank Resource under Application Number ‘46926’. We thank all the participants in the UK Biobank study. 
