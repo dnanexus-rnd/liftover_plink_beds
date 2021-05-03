@@ -1,7 +1,7 @@
-### Application Note: to liftover UKB array genotype data
+# Application Note: to liftover UKB array genotype data
 **Disclaimers:** This note and WDL workflow are not officially supported by DNAnexus. We provide this to share back our practice with the community to advance in science. 
 
-#### Introduction
+### Introduction
 
 [UK Biobank](https://www.ukbiobank.ac.uk/) (UKB) has collected array genotyping, whole exome sequencing (WES), and whole genome sequencing (WGS) for half a million participants aged 40-60 years. In addition to the genetic data, researchers can gain access to thousands of traits/phenotypes of the participants, making UKB one of the richest data sources for performing GWAS. 
 
@@ -11,7 +11,7 @@ UKB released array genotyping data on GRCh37 reference build ([link](https://bio
 
 Since the scale of UKB array genotyping data is large (~800K genome-wide variant markers over ~500K individuals), we will need to better manage the pre-processing, post-processing, and the overall computer resources of this liftover work. This note is describing a processing workflow on how I convert the UKB array genotyping data from GRCh37 to [hs38DH](https://github.com/lh3/bwa/blob/master/bwakit/run-gen-ref#L13) (primary assembly of GRCh38 + ALT contigs + decoy contigs + HLA genes). 
 
-#### Tools, liftover pipeline, and resource management
+### Tools, liftover pipeline, and resource management
 
 There are many tools available to align and convert coordinates from one build to another. E.g. [CrossMap](http://crossmap.sourceforge.net/), [liftOver](https://genome-store.ucsc.edu/), [Remap](https://www.ncbi.nlm.nih.gov/genome/tools/remap/docs/api), etc. These tools are capable to determine the coordinate in a target genome assembly build (target), according to where it was first determined in another build (source).
 
@@ -21,15 +21,15 @@ The pipeline consits two parts. First, it scatters the job of running `picard Li
 
 For each chromosome, it would take up to 200 GB disk space (around 30x of the original BED file size) for mediating the liftover work. `Picard LiftoverVcf` can be memory intensive for the scale of the sample size, here we designated 50 GB of memory for each chromosome's liftover work. To further optimize the memory resources required for the pipeline, the variant sorting is disabled in `Picard LiftoverVcf` as it is found to be a memory intensive operation. Instead, the pipeline sorts the intermediate lifted VCF using `bcftools sort` before converting it back to PLINK format. 
 
-The entire liftover process and the compute resource requirements for the work are summarized in a [WDL](https://github.com/openwdl) workflow (liftover_plink_beds.wdl). The workflow utilizes [bcftools](https://github.com/samtools/bcftools), [picard](https://github.com/broadinstitute/picard), [plink](https://www.cog-genomics.org/plink/) and [plink2](https://www.cog-genomics.org/plink/2.0/) and they are wrapped as a docker image ([link](https://quay.io/repository/yihchii/liftover_plink_beds)).  
+The entire liftover process and the compute resource requirements for the work are summarized in a [WDL](https://github.com/openwdl) workflow ([liftover_plink_beds.wdl](liftover_plink_beds.wdl)). The workflow utilizes [bcftools](https://github.com/samtools/bcftools), [picard](https://github.com/broadinstitute/picard), [plink](https://www.cog-genomics.org/plink/) and [plink2](https://www.cog-genomics.org/plink/2.0/) and they are wrapped as using this [Dockerfile](docker/Dockerfile) a docker image ([link](https://quay.io/repository/yihchii/liftover_plink_beds)).  
 
-#### Results
+### Results
 
 Of all the 805,426 markers reported in the UKB genome-wide genotyping array, 803,700 (99.79%) were lifted from GRCh37 to GRCh38. For a quick check, I compared the result with an orthogonal data source -- annotations for the Axiom UKB WCSG array on hg38 build. 
 
 There are 707,082 of the 805,426 UKB markers having records in the hg38 annotation file (NetAffx CSV file). Of these, 706,158 markers were lifted to GRCh38 using the liftover workflow presented. We found that 99.98% (705,997 / 706,158) of the lifted markers are consensus with the array’s hg38 annotation. This is suggesting that the liftover pipeline works properly. The rest 161 markers are having discrepancies because of chromosome mismatching (52), position mismatching (23), allele mismatching (60), or missing annotation (26). 
 
-#### Usage on RAP
+### Usage on RAP
 
 Theoretically the WDL workflow can be executed anywhere with any of the execution engines listed https://github.com/openwdl/wdl#execution-engines. I have only compiled it and tested it on [RAP](https://ukbiobank.dnanexus.com) and [DNAnexus Platform](https://platform.dnanexus.com), which uses [dxCompiler](https://github.com/dnanexus/dxCompiler). 
 
@@ -41,7 +41,7 @@ workflow-yyyy
 
 Where the project-xxxx corresponds to the [unique project ID](https://dnanexus.gitbook.io/uk-biobank-rap/getting-started/creating-a-project) of yours on RAP, and workflow-yyyy is the compiled workflow ID for the liftover pipeline.
 
-Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file and the target build’s fasta.gz file. All input parameters can be provided in JSON format (e.g. liftover_input_template.json) . 
+Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file and the target build’s fasta.gz file. All input parameters can be provided in JSON format (e.g. [liftover_input_template.json](liftover_input_template.json)) . 
 
 ```bash
 # Execute the compiled workflow on RAP/DNAnexus
@@ -53,8 +53,8 @@ Alternatively, input parameters can also be specified via the webUI of [RAP](htt
 
 **Runtime/Cost:**\* The liftOver analysis for all 26 chromosomes' PLINK files ([Data-Field 22418](https://biobank.ndph.ox.ac.uk/showcase/field.cgi?id=22418)) from GRCh37 to GRCh38 finished within 17.5 hours wall clock time on [RAP](https://ukbiobank.dnanexus.com/landing). With the RAP compute rate, the cost is ~£56.5 with on-demand instances (priority High). If using spot instances (priority Low), the cost can be lowered to ~£10.5.
 
-\* The estimates are generated in April 2021. All numbers can be subject to change. Compute rate could be changing by RAP's Terms of Service. Depending on the instnace type of choice, the implementation of the pipeline and more, there is always room for further optimizations on runtime or cost, or both. 
+\* The estimates were generated in April 2021. All numbers can be subject to change. Compute rate could be changing by RAP's Terms of Service. Depending on the instnace type of choice, the implementation of the pipeline and more, there is always room for further optimizations on runtime or cost, or both. 
 
 #### Acknowledgements
 
-Thanks to Tony Marcketta (@AMarcketta), Joe Foster, Chiao-Feng Lin (@chiaofenglin), Peter Nguyen, Chai Fungtammasan (@Chai_Arkarachai), and Jason Chin (@infoecho) for the discussions on the liftover process. This is part of our data preparation process for our research project using the UK Biobank Resource under Application Number ‘46926’. We thank all the participants in the UK Biobank study. 
+Thanks to Tony Marcketta ([@AMarcketta](https://twitter.com/amarcketta)), Joe Foster, Chiao-Feng Lin ([@chiaofenglin](https://twitter.com/chiaofenglin)), Peter Nguyen, Chai Fungtammasan ([@Chai_Arkarachai](https://twitter.com/Chai_Arkarachai)), and Jason Chin ([@infoecho](https://twitter.com/infoecho)) for the discussions on the liftover process. This is part of our data preparation process for our research project using the UK Biobank Resource under Application Number ‘46926’. We thank all the participants in the UK Biobank study. 
