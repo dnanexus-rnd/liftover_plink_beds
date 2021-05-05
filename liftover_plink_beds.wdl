@@ -238,7 +238,7 @@ task merge_and_split_by_chr {
   output {
     Array[File] merged_plinks = glob("ukb_~{reference}_merged.*")
     Array[File] autosomal_plinks = glob("autosomal_dir/ukb_c1-22_~{reference}_merged.*")
-    Array[File] per_chr_plinks = glob("ukb_c*_~{reference}_merged.*")
+    Array[File] per_chr_plinks = glob("ukb_c*_~{reference}.*")
     Array[File] unplaced_plinks = glob("ukb_unplaced_~{reference}.*")
   }
   runtime {
