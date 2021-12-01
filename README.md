@@ -1,5 +1,4 @@
 # Application Note: to liftover UKB array genotype data
-**Disclaimers:** This note and WDL workflow are not officially supported by DNAnexus. We provide this to share back our practice with the community to advance in science. 
 
 ### Introduction
 
@@ -41,7 +40,7 @@ workflow-yyyy
 
 Where the project-xxxx corresponds to the [unique project ID](https://dnanexus.gitbook.io/uk-biobank-rap/getting-started/creating-a-project) of yours on RAP, and workflow-yyyy is the compiled workflow ID for the liftover pipeline.
 
-Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file (e.g. [b37ToHg38.over.chain](https://raw.githubusercontent.com/broadinstitute/gatk/master/scripts/funcotator/data_sources/gnomAD/b37ToHg38.over.chain)) and the target build’s fasta.gz file (e.g. [1000genomes.grch38.fasta-index.tar.gz](https://biobank.ndph.ox.ac.uk/showcase/refer.cgi?id=1000)) by first ensuring a copy of each reference file on the corresponding RAP project. All input parameters can be provided in JSON format (e.g. [liftover_input_template.json](liftover_input_template.json)) . 
+Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file (e.g. [b37ToHg38.over.chain](https://raw.githubusercontent.com/broadinstitute/gatk/master/scripts/funcotator/data_sources/gnomAD/b37ToHg38.over.chain)) and the target build’s fasta or fasta.gz file (e.g. [1000genomes.grch38.fasta-index.tar.gz](https://biobank.ndph.ox.ac.uk/showcase/refer.cgi?id=1000), or `GRCh38_full_analysis_set_plus_decoy_hla.fa` under `/Bulk/Exome sequences/Exome OQFE CRAM files/helper_files/` on RAP) by first ensuring a copy of each reference file on the corresponding RAP project. All input parameters can be provided in JSON format (e.g. [liftover_input_template.json](liftover_input_template.json)) . 
 
 ```bash
 # Execute the compiled workflow on RAP/DNAnexus
@@ -58,3 +57,7 @@ Alternatively, input parameters can also be specified via the webUI of [RAP](htt
 ### Acknowledgements
 
 Thanks to Tony Marcketta ([@AMarcketta](https://twitter.com/amarcketta)), Joe Foster, Chiao-Feng Lin ([@chiaofenglin](https://twitter.com/chiaofenglin)), Peter Nguyen, Chai Fungtammasan ([@Chai_Arkarachai](https://twitter.com/Chai_Arkarachai)), and Jason Chin ([@infoecho](https://twitter.com/infoecho)) for the discussions on the liftover process. This is part of our data preparation process for our research project using the UK Biobank Resource under Application Number ‘46926’. We thank all the participants in the UK Biobank study. 
+
+### Disclaimers
+
+This content may contain proprietary information owned by [DNAnexus](https://www.dnanexus.com/) and is for research purposes only. There is no expectation to sell or support the research and the user retains all accountability and liability attached to the use of the content. This content may be used under the [MIT license](LICENSE).
