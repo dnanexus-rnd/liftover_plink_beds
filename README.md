@@ -1,5 +1,4 @@
 # Application Note: to liftover UKB array genotype data
-**Disclaimers:** This note and WDL workflow are not officially supported by DNAnexus. We provide this to share back our practice with the community to advance in science. 
 
 ### Introduction
 
@@ -58,3 +57,7 @@ Alternatively, input parameters can also be specified via the webUI of [RAP](htt
 ### Acknowledgements
 
 Thanks to Tony Marcketta ([@AMarcketta](https://twitter.com/amarcketta)), Joe Foster, Chiao-Feng Lin ([@chiaofenglin](https://twitter.com/chiaofenglin)), Peter Nguyen, Chai Fungtammasan ([@Chai_Arkarachai](https://twitter.com/Chai_Arkarachai)), and Jason Chin ([@infoecho](https://twitter.com/infoecho)) for the discussions on the liftover process. This is part of our data preparation process for our research project using the UK Biobank Resource under Application Number ‘46926’. We thank all the participants in the UK Biobank study. 
+
+### Disclaimers
+
+This content may contain proprietary information owned by [DNAnexus](https://www.dnanexus.com/) and is for research purposes only. There is no expectation to sell or support the research and the user retains all accountability and liability attached to the use of the content. This content may be used under the [MIT license](LICENSE).
