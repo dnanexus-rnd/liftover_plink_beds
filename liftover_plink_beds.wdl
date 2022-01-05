@@ -183,13 +183,12 @@ task merge_and_split_by_chr {
     Boolean output_autosomal = true
   }
   Int disk_space = ceil(size(flatten([plink_beds, plink_bims, plink_fams]), "GB") * 3)
-  File files_to_merge = write_lines(plink_beds)
   File fam_file = select_first(plink_fams)
   command <<<
     set -x -e -o pipefail
     mkdir -p autosomal_dir/
 
-    cat "~{files_to_merge}" | sed -e 's/.bed//g' > files_to_merge.txt
+    cat "~{write_lines(plink_beds)}" | sed -e 's/.bed//g' > files_to_merge.txt
     cat files_to_merge.txt
     ## Get memory on the machine, use 80% of the memory for each operation
     memTotal=$(head -n1 /proc/meminfo|awk '{print $2}')
