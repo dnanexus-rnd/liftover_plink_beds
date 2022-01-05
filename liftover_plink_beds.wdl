@@ -22,6 +22,7 @@ workflow liftover_plink_beds {
     File ucsc_chain
     File reference_fastagz
     String split_par_build_code = "hg38"
+    Boolean output_autosomal = true
   }
   String reference = basename(basename(basename(reference_fastagz, ".gz"), ".fa"), ".fasta")
   scatter(plink_bed in plink_beds){
@@ -44,13 +45,14 @@ workflow liftover_plink_beds {
       plink_bims = picard_liftovervcf.lifted_plink_bim,
       plink_fams = picard_liftovervcf.lifted_plink_fam,
       split_par_build_code = split_par_build_code,
-      reference = reference
+      reference = reference,
+      output_autosomal = output_autosomal
   }
   output {
     Array[File] merged_plinks = merge_and_split_by_chr.merged_plinks
-    Array[File] autosomal_plinks = merge_and_split_by_chr.autosomal_plinks
-    Array[File] per_chr_plinks = merge_and_split_by_chr.per_chr_plinks
-    Array[File] unplaced_plinks = merge_and_split_by_chr.unplaced_plinks
+    Array[File?] autosomal_plinks = merge_and_split_by_chr.autosomal_plinks
+    Array[File?] per_chr_plinks = merge_and_split_by_chr.per_chr_plinks
+    Array[File?] unplaced_plinks = merge_and_split_by_chr.unplaced_plinks
     Array[File] lifted_vcf = flatten(picard_liftovervcf.lifted_vcf)
   }
   parameter_meta {
@@ -67,7 +69,7 @@ workflow liftover_plink_beds {
         patterns: ["*.chain"]
     }
     reference_fastagz: {
-        patterns: ["*.fa*.gz"]
+        patterns: ["*.fa*.gz", "*.fa", "*.fasta"]
     }
   }
 }
@@ -165,7 +167,7 @@ task picard_liftovervcf {
     Array[File] lifted_vcf = glob('*.vcf.gz')
   }
   runtime {
-    docker: "quay.io/yihchii/liftover_plink_beds:20210423"
+    docker: "quay.io/yihchii/liftover_plink_beds:20220104"
     memory: "64 GB"
     disks: "local-disk ~{disk_space} SSD"
   }
@@ -178,6 +180,7 @@ task merge_and_split_by_chr {
     Array[File] plink_fams
     String split_par_build_code
     String reference
+    Boolean output_autosomal = true
   }
   Int disk_space = ceil(size(flatten([plink_beds, plink_bims, plink_fams]), "GB") * 3)
   File files_to_merge = write_lines(plink_beds)
@@ -210,39 +213,48 @@ task merge_and_split_by_chr {
     done
     set -x
 
-    ## Get autosomal (chr1-22) PLINK file set
-    plink2 --bfile "ukb_~{reference}_merged" --chr 1-22 --make-bed \
-      --out "autosomal_dir/ukb_c1-22_~{reference}_merged"  \
-      --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
-    cp "ukb_~{reference}_merged.fam" "autosomal_dir/ukb_c1-22_~{reference}_merged.fam"
+    if [ "~{output_autosomal}" == "true" ]; then
+      ## Get autosomal (chr1-22) PLINK file set
+      plink2 --bfile "ukb_~{reference}_merged" --chr 1-22 --make-bed \
+        --out "autosomal_dir/ukb_c1-22_~{reference}_merged"  \
+        --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
+      cp "ukb_~{reference}_merged.fam" "autosomal_dir/ukb_c1-22_~{reference}_merged.fam"
+    fi
 
-    ## Generate per-chromosome PLINK file set
-    for i in $(seq 1 22) X Y MT; do 
+    ## Split into per-chromosome PLINK file set from the merged PLINK
+    for i in $(cut -f1 ukb_~{reference}_merged.bim|sort -u|grep -v 'PAR'||true); do 
       plink2 --bfile "ukb_~{reference}_merged" --chr "${i}" --make-bed \
           --out "ukb_c${i}_~{reference}" \
           --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
       cp "ukb_~{reference}_merged.fam" "ukb_c${i}_~{reference}.fam"
     done
 
-    plink2 --bfile "ukb_~{reference}_merged" --chr PAR1,PAR2 --make-bed \
-      --out "ukb_cPAR_~{reference}" \
-      --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
-    cp "ukb_~{reference}_merged.fam" "ukb_cPAR_~{reference}.fam"
+    ## Gererate PAR plink file set if they exist
+    par_num=$(cut -f1 ukb_~{reference}_merged.bim|sort -u|grep 'PAR1\|PAR2'|wc -l||true)
+    if [ "${par_num}" == "2" ]; then
+      plink2 --bfile "ukb_~{reference}_merged" --chr PAR1,PAR2 --make-bed \
+        --out "ukb_cPAR_~{reference}" \
+        --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
+      cp "ukb_~{reference}_merged.fam" "ukb_cPAR_~{reference}.fam"
+    fi
 
     ## Generate plink files containing unplaced contigs
-    plink2 --bfile "ukb_~{reference}_merged" --not-chr 1-22,X,Y,PAR1,PAR2,MT --make-bed \
-      --out "ukb_unplaced_~{reference}" \
-      --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
-    cp "ukb_~{reference}_merged.fam" "ukb_unplaced_~{reference}.fam"
+    unplaced_num=$(cut -f1 ukb_~{reference}_merged.bim|sort -u|grep -v 'PAR'|grep -v -e '[0-9]$'|wc -l||true)
+    if [ "${unplaced_num}" != "0" ]; then
+      plink2 --bfile "ukb_~{reference}_merged" --not-chr 1-22,X,Y,PAR1,PAR2,MT --make-bed \
+        --out "ukb_unplaced_~{reference}" \
+        --allow-extra-chr --threads $(nproc) --memory "${memXmx_m}"
+      cp "ukb_~{reference}_merged.fam" "ukb_unplaced_~{reference}.fam"
+    fi
   >>>
   output {
     Array[File] merged_plinks = glob("ukb_~{reference}_merged.*")
-    Array[File] autosomal_plinks = glob("autosomal_dir/ukb_c1-22_~{reference}_merged.*")
-    Array[File] per_chr_plinks = glob("ukb_c*_~{reference}.*")
-    Array[File] unplaced_plinks = glob("ukb_unplaced_~{reference}.*")
+    Array[File?] autosomal_plinks = glob("autosomal_dir/ukb_c1-22_~{reference}_merged.*")
+    Array[File?] per_chr_plinks = glob("ukb_c*_~{reference}.*")
+    Array[File?] unplaced_plinks = glob("ukb_unplaced_~{reference}.*")
   }
   runtime {
-    docker: "quay.io/yihchii/liftover_plink_beds:20210423"
+    docker: "quay.io/yihchii/liftover_plink_beds:20220104"
     cpu: 8
     memory: "16 GB"
     disks: "local-disk ~{disk_space} SSD"

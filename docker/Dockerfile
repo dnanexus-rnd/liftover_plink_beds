@@ -1,13 +1,14 @@
 FROM ubuntu:20.04
 ARG BCFTOOLS_VER="1.12"
-ARG PICARD_VER="2.25.2"
+ARG PICARD_VER="2.26.10"
 ARG INSTALL_DIR="/usr/local"
 ARG PLINK_VER="20210416"
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     build-essential \
     openjdk-8-jre-headless \
     unzip \
+    liblz4-dev \
     wget \
     zlib1g-dev \
  && apt-get autoclean && apt-get autoremove && rm -rf /var/lib/apt/lists/*

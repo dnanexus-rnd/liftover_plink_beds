@@ -40,7 +40,7 @@ workflow-yyyy
 
 Where the project-xxxx corresponds to the [unique project ID](https://dnanexus.gitbook.io/uk-biobank-rap/getting-started/creating-a-project) of yours on RAP, and workflow-yyyy is the compiled workflow ID for the liftover pipeline.
 
-Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file (e.g. [b37ToHg38.over.chain](https://raw.githubusercontent.com/broadinstitute/gatk/master/scripts/funcotator/data_sources/gnomAD/b37ToHg38.over.chain)) and the target build’s fasta.gz file (e.g. [1000genomes.grch38.fasta-index.tar.gz](https://biobank.ndph.ox.ac.uk/showcase/refer.cgi?id=1000)) by first ensuring a copy of each reference file on the corresponding RAP project. All input parameters can be provided in JSON format (e.g. [liftover_input_template.json](liftover_input_template.json)) . 
+Once the workflow is compiled, the liftover analysis can be run by feeding the BED/BIM/FAM files along with the corresponding liftover chain file (e.g. [b37ToHg38.over.chain](https://raw.githubusercontent.com/broadinstitute/gatk/master/scripts/funcotator/data_sources/gnomAD/b37ToHg38.over.chain)) and the target build’s fasta or fasta.gz file (e.g. [1000genomes.grch38.fasta-index.tar.gz](https://biobank.ndph.ox.ac.uk/showcase/refer.cgi?id=1000), or `GRCh38_full_analysis_set_plus_decoy_hla.fa` under `/Bulk/Exome sequences/Exome OQFE CRAM files/helper_files/` on RAP) by first ensuring a copy of each reference file on the corresponding RAP project. All input parameters can be provided in JSON format (e.g. [liftover_input_template.json](liftover_input_template.json)) . 
 
 ```bash
 # Execute the compiled workflow on RAP/DNAnexus
